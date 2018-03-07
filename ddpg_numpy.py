@@ -61,12 +61,12 @@ if __name__ == '__main__':
     
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
-    action_bound = env.action_space.high[0]
+    # action_bound = env.action_space.high[0]
     
     # Create actor and critic nets
-    actor = ActorNet(state_dim, HIDDEN1_UNITS, HIDDEN2_UNITS, action_dim)
-    critic = CriticNet(state_dim, action_dim, HIDDEN1_UNITS, HIDDEN2_UNITS,
-                        HIDDEN2_UNITS, action_dim)
+    actor = actor_net.ActorNet(state_dim, HIDDEN1_UNITS, HIDDEN2_UNITS, action_dim)
+    critic = critic_net.CriticNet(state_dim, action_dim, HIDDEN1_UNITS, HIDDEN2_UNITS,
+                        HIDDEN2_UNITS, 1)
     
     # Initialize replay buffer
     
@@ -106,15 +106,15 @@ if __name__ == '__main__':
                 states_t_1 = np.asarray([e[3] for e in batch])
                 dones = np.asarray([e[4] for e in batch])
                 # Setup y_is for updating critic
-                y=np.zeros((len(batch), action_dim))
+                y=np.zeros((len(batch), 1))
                 a_tgt=actor.predict(states_t_1, ACTION_BOUND, target=True)
                 Q_tgt = critic.predict(states_t_1, a_tgt,target=True)
                 
-                for i in range(len(batch)):
-                    if dones[i]:
-                        y[i] = rewards[i]
+                for k in range(len(batch)):
+                    if dones[k]:
+                        y[k] = rewards[k]
                     else:
-                        y[i] = rewards[i] + GAMMA*Q_tgt[i]    
+                        y[k] = rewards[k] + GAMMA*Q_tgt[k]    
                 # Update critic by minimizing the loss
                 loss += critic.train(states_t, actions, y)
                 # Update actor using sampled policy gradient
